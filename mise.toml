@@ -1,0 +1,13 @@
+[tools]
+"npm:corepack" = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "pnpm"]
+
+[tasks.setup]
+description = "Setup the project environment"
+depends = ["setup:*"]
+
+[tasks."setup:package"]
+run = "pnpm install"
+description = "Install project dependencies using pnpm"
