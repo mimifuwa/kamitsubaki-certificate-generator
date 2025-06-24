@@ -1,0 +1,39 @@
+// 住民票ジェネレータ Prismaスキーマ
+// Supabase PostgreSQL接続用
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// 住民票番号管理テーブル
+model ResidentCounter {
+  id            Int      @id @default(1)
+  currentNumber Int      @default(0) @map("current_number")
+  updatedAt     DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@map("resident_counter")
+}
+
+// 住民票テーブル
+model Resident {
+  id             String   @id @default(cuid())
+  userId         String   @map("user_id")
+  residentNumber Int      @map("resident_number")
+  name           String
+  photoUrl       String   @map("photo_url")
+  streetNumber   String   @map("street_number")
+  addressLine    String   @map("address_line")
+  apartmentInfo  String?  @map("apartment_info")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@map("residents")
+}
