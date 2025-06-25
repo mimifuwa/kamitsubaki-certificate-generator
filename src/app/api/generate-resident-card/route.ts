@@ -1,3 +1,6 @@
+import { readFile } from "fs/promises";
+import path from "path";
+
 import { NextRequest, NextResponse } from "next/server";
 import satori from "satori";
 
@@ -62,12 +65,14 @@ export async function POST(request: NextRequest) {
     // 写真をBase64で取得
     let photoBase64: string | undefined;
     try {
-      const photoResponse = await fetch(resident.photoUrl);
-      if (photoResponse.ok) {
-        const photoBuffer = await photoResponse.arrayBuffer();
-        const base64 = Buffer.from(photoBuffer).toString("base64");
-        photoBase64 = `data:image/jpeg;base64,${base64}`;
-      }
+      // ローカルファイルシステムから直接読み込み
+      const photoPath = path.join(process.cwd(), "public", resident.photoUrl);
+      const photoBuffer = await readFile(photoPath);
+      const base64 = photoBuffer.toString("base64");
+      // ファイル拡張子からMIMEタイプを推定
+      const ext = path.extname(resident.photoUrl).toLowerCase();
+      const mimeType = ext === ".png" ? "image/png" : "image/jpeg";
+      photoBase64 = `data:${mimeType};base64,${base64}`;
     } catch (error) {
       console.error("写真取得エラー:", error);
       // 写真取得に失敗してもSVG生成は続行
@@ -76,13 +81,11 @@ export async function POST(request: NextRequest) {
     // ロゴ画像をBase64で取得
     let logoBase64: string | undefined;
     try {
-      const logoUrl = new URL("/1.png", request.url);
-      const logoResponse = await fetch(logoUrl);
-      if (logoResponse.ok) {
-        const logoBuffer = await logoResponse.arrayBuffer();
-        const base64 = Buffer.from(logoBuffer).toString("base64");
-        logoBase64 = `data:image/png;base64,${base64}`;
-      }
+      // ローカルファイルシステムから直接読み込み
+      const logoPath = path.join(process.cwd(), "public", "1.png");
+      const logoBuffer = await readFile(logoPath);
+      const base64 = logoBuffer.toString("base64");
+      logoBase64 = `data:image/png;base64,${base64}`;
     } catch (error) {
       console.error("ロゴ取得エラー:", error);
       // ロゴ取得に失敗してもSVG生成は続行

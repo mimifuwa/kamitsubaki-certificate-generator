@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import ResidentForm from "@/components/ResidentForm";
 import { Resident, ResidentData } from "@/types/resident";
@@ -15,7 +15,7 @@ export default function Home() {
   const searchParams = useSearchParams();
   const residentId = searchParams.get("id");
 
-  const generateSvg = async (residentData: Resident) => {
+  const generateSvg = useCallback(async (residentData: Resident) => {
     try {
       const response = await fetch("/api/generate-resident-card", {
         method: "POST",
@@ -37,23 +37,26 @@ export default function Home() {
       console.error("SVG生成エラー:", error);
       alert("市民票の生成に失敗しました");
     }
-  };
+  }, []);
 
-  const fetchResident = async (id: string) => {
-    try {
-      const response = await fetch(`/api/residents/${id}`);
-      if (!response.ok) {
-        throw new Error("市民票の取得に失敗しました");
+  const fetchResident = useCallback(
+    async (id: string) => {
+      try {
+        const response = await fetch(`/api/residents/${id}`);
+        if (!response.ok) {
+          throw new Error("市民票の取得に失敗しました");
+        }
+        const residentData = await response.json();
+        setResident(residentData);
+        await generateSvg(residentData);
+        setIsGenerated(true);
+      } catch (error) {
+        console.error("市民票取得エラー:", error);
+        alert("市民票の取得に失敗しました");
       }
-      const residentData = await response.json();
-      setResident(residentData);
-      await generateSvg(residentData);
-      setIsGenerated(true);
-    } catch (error) {
-      console.error("市民票取得エラー:", error);
-      alert("市民票の取得に失敗しました");
-    }
-  };
+    },
+    [generateSvg]
+  );
 
   // クエリパラメータからデータを読み込み
   useEffect(() => {

@@ -1,19 +1,39 @@
-import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "crypto";
+import { mkdir, readFile, writeFile } from "fs/promises";
+import path from "path";
+
 import { NextRequest, NextResponse } from "next/server";
 
-import { prisma } from "@/lib/prisma";
+interface Resident {
+  id: string;
+  userId: string;
+  residentNumber: number;
+  name: string;
+  photoUrl: string;
+  streetNumber: string;
+  addressLine: string;
+  apartmentInfo: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
-// サービスロールキーを使用したクライアント（RLS回避用）
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
+const DATA_FILE = path.join(process.cwd(), "data", "residents.json");
+
+async function readResidentsData(): Promise<Resident[]> {
+  try {
+    const data = await readFile(DATA_FILE, "utf-8");
+    return JSON.parse(data);
+  } catch {
+    // ファイルが存在しない場合は空配列を返す
+    return [];
   }
-);
+}
+
+async function writeResidentsData(residents: Resident[]): Promise<void> {
+  const dataDir = path.dirname(DATA_FILE);
+  await mkdir(dataDir, { recursive: true });
+  await writeFile(DATA_FILE, JSON.stringify(residents, null, 2));
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,27 +55,27 @@ export async function POST(request: NextRequest) {
 
     // 写真がアップロードされている場合のみ処理
     if (photo && photo.name && photo.size > 0) {
-      // 写真をSupabase Storageにアップロード
-      const fileExt = photo.name.split(".").pop();
-      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      try {
+        // ローカルストレージに写真を保存
+        const fileExt = photo.name.split(".").pop();
+        const fileName = `${userId}_${Date.now()}.${fileExt}`;
+        const uploadDir = path.join(process.cwd(), "public", "uploads", "resident-photos");
 
-      const { error: uploadError } = await supabaseAdmin.storage
-        .from("resident-photos")
-        .upload(fileName, photo, {
-          cacheControl: "3600",
-          upsert: false,
-        });
+        // ディレクトリが存在しない場合は作成
+        await mkdir(uploadDir, { recursive: true });
 
-      if (uploadError) {
-        console.error("写真アップロードエラー:", uploadError);
-        return NextResponse.json({ error: "写真のアップロードに失敗しました" }, { status: 500 });
+        const filePath = path.join(uploadDir, fileName);
+        const bytes = await photo.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        await writeFile(filePath, buffer);
+
+        // パブリックURLを生成
+        photoUrl = `/uploads/resident-photos/${fileName}`;
+      } catch (error) {
+        console.error("写真保存エラー:", error);
+        return NextResponse.json({ error: "写真の保存に失敗しました" }, { status: 500 });
       }
-
-      // 写真のパブリックURLを取得
-      const { data: urlData } = supabaseAdmin.storage
-        .from("resident-photos")
-        .getPublicUrl(fileName);
-      photoUrl = urlData.publicUrl;
     }
 
     // 更新処理か新規作成処理かを判定
@@ -66,9 +86,8 @@ export async function POST(request: NextRequest) {
       }
 
       // 更新処理：既存データを更新（新レコードとして作成）
-      const existingResident = await prisma.resident.findUnique({
-        where: { id: residentId },
-      });
+      const residents = await readResidentsData();
+      const existingResident = residents.find((r) => r.id === residentId);
 
       if (!existingResident) {
         return NextResponse.json({ error: "市民票が見つかりません" }, { status: 404 });
@@ -78,17 +97,21 @@ export async function POST(request: NextRequest) {
       const finalPhotoUrl = photoUrl || existingResident.photoUrl;
       const tempResidentNumber = Math.floor(Math.random() * 100000) + 1;
 
-      const resident = await prisma.resident.create({
-        data: {
-          userId,
-          name,
-          photoUrl: finalPhotoUrl,
-          streetNumber,
-          addressLine,
-          apartmentInfo: apartmentInfo || null,
-          residentNumber: tempResidentNumber,
-        },
-      });
+      const resident: Resident = {
+        id: randomUUID(),
+        userId,
+        name,
+        photoUrl: finalPhotoUrl,
+        streetNumber,
+        addressLine,
+        apartmentInfo: apartmentInfo || null,
+        residentNumber: tempResidentNumber,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      residents.push(resident);
+      await writeResidentsData(residents);
 
       return NextResponse.json(resident);
     } else {
@@ -97,21 +120,26 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "写真のアップロードが必要です" }, { status: 400 });
       }
 
-      // 仮の市民票番号を生成（本来はデータベーストリガーで自動生成）
+      // 仮の市民票番号を生成
       const tempResidentNumber = Math.floor(Math.random() * 100000) + 1;
 
-      // データベースに市民票データを保存
-      const resident = await prisma.resident.create({
-        data: {
-          userId,
-          name,
-          photoUrl,
-          streetNumber,
-          addressLine,
-          apartmentInfo: apartmentInfo || null,
-          residentNumber: tempResidentNumber,
-        },
-      });
+      // JSONファイルに市民票データを保存
+      const residents = await readResidentsData();
+      const resident: Resident = {
+        id: randomUUID(),
+        userId,
+        name,
+        photoUrl,
+        streetNumber,
+        addressLine,
+        apartmentInfo: apartmentInfo || null,
+        residentNumber: tempResidentNumber,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      residents.push(resident);
+      await writeResidentsData(residents);
 
       return NextResponse.json(resident);
     }
@@ -130,10 +158,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "ユーザーIDが必要です" }, { status: 400 });
     }
 
-    const residents = await prisma.resident.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    });
+    const allResidents = await readResidentsData();
+    const residents = allResidents
+      .filter((r) => r.userId === userId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json(residents);
   } catch (error) {
