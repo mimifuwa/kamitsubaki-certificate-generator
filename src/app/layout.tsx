@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     siteName: appName,
     images: [
       {
-        url: "https://kamitsubaki-certificate-generator.vercel.app/ogp.png",
+        url: "https://kamitsubaki-cert.mimifuwa.cc/ogp.png",
         width: 1200,
         height: 630,
         alt: appName,
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: appName,
     description,
-    images: ["https://kamitsubaki-certificate-generator.vercel.app/ogp.png"],
+    images: ["https://kamitsubaki-cert.mimifuwa.cc/ogp.png"],
   },
 };
 
