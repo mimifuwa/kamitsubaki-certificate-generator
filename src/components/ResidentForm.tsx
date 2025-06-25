@@ -175,7 +175,7 @@ export default function ResidentForm({
     const defaultData = {
       name: "",
       photo: null,
-      streetNumber: "零番街",
+      streetNumber: "",
       addressLine: "",
       apartmentInfo: "",
     };
@@ -311,7 +311,7 @@ export default function ResidentForm({
     return (
       formData.name.trim() !== "" ||
       formData.photo !== null ||
-      formData.streetNumber !== "零番街" ||
+      formData.streetNumber !== "" ||
       formData.addressLine.trim() !== "" ||
       formData.apartmentInfo?.trim() !== ""
     );
@@ -322,7 +322,7 @@ export default function ResidentForm({
     const defaultData = {
       name: "",
       photo: null,
-      streetNumber: "零番街",
+      streetNumber: "",
       addressLine: "",
       apartmentInfo: "",
     };
@@ -358,7 +358,7 @@ export default function ResidentForm({
             value={formData.name}
             onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-            placeholder="山田 太郎"
+            placeholder="夜河 世界"
           />
         </div>
 
@@ -488,6 +488,9 @@ export default function ResidentForm({
               onChange={(e) => setFormData((prev) => ({ ...prev, streetNumber: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
+              <option value="" disabled>
+                選択してください
+              </option>
               {STREET_OPTIONS.map((street) => (
                 <option key={street} value={street}>
                   {street}
@@ -508,7 +511,7 @@ export default function ResidentForm({
               value={formData.addressLine}
               onChange={(e) => setFormData((prev) => ({ ...prev, addressLine: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              placeholder="1-2-3"
+              placeholder="霞が原 白苑２７６"
             />
           </div>
 
@@ -523,7 +526,7 @@ export default function ResidentForm({
               value={formData.apartmentInfo}
               onChange={(e) => setFormData((prev) => ({ ...prev, apartmentInfo: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
-              placeholder="サンプルマンション 101号室"
+              placeholder="ヰ世界救済教団 歌修院 教主居室"
             />
           </div>
         </div>
