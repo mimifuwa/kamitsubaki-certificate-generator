@@ -1,0 +1,11 @@
+{
+  "name": "神椿市市民票ジェネレーター",
+  "short_name": "神椿市市民票",
+  "description": "神椿市の市民票を生成できます",
+  "start_url": "/",
+  "display": "standalone",
+  "icons": [
+    { "src": "/icon-192x192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/icon-512x512.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}
