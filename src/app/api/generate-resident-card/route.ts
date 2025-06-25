@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       ResidentCardForSatori({ resident: residentData, photoBase64, logoBase64 }),
       {
         width: 1080,
-        height: (1123 * 5398) / 8560,
+        height: 681.0560747664,
         fonts,
       }
     );

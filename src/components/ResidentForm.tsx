@@ -342,7 +342,7 @@ export default function ResidentForm({
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">市民票作成</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -415,7 +415,7 @@ export default function ResidentForm({
                   </div>
                   <button
                     type="button"
-                    className="px-3 py-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200"
+                    className="px-3 py-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors duration-200 cursor-pointer"
                   >
                     選択
                   </button>
@@ -462,7 +462,7 @@ export default function ResidentForm({
                     type="button"
                     onClick={handleUploadClick}
                     disabled={isCompressing}
-                    className="px-3 py-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors duration-200"
+                    className="px-3 py-2 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 transition-colors duration-200 cursor-pointer"
                   >
                     変更
                   </button>
@@ -533,7 +533,7 @@ export default function ResidentForm({
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? "処理中..." : buttonText}
           </button>
@@ -542,7 +542,7 @@ export default function ResidentForm({
             type="button"
             onClick={handleReset}
             disabled={loading || !hasFormContent()}
-            className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-gray-500 text-white py-2 px-4 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-400 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {initialData ? "入力内容をクリア" : "リセット"}
           </button>

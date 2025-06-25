@@ -120,7 +120,7 @@ export default function Home() {
       const ctx = canvas.getContext("2d");
 
       canvas.width = 1080;
-      canvas.height = 681;
+      canvas.height = 681.0560747664;
 
       if (ctx) {
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -147,16 +147,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto max-w-7xl px-4">
         <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">市民票ジェネレータ</h1>
-          <p className="text-gray-600">架空の市の市民票を作成しましょう</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">神椿市市民票ジェネレータ</h1>
+          <p className="text-gray-600">神椿市の市民票を作成できます</p>
         </header>
 
         {/* レスポンシブレイアウト */}
-        <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex flex-col lg:grid lg:grid-cols-2 gap-8">
           {/* フォーム部分 */}
-          <div className="w-full lg:w-1/2">
+          <div className="w-full">
             <ResidentForm
               onSubmit={handleFormSubmit}
               loading={loading}
@@ -176,7 +176,7 @@ export default function Home() {
           </div>
 
           {/* 結果表示部分 */}
-          <div className="w-full lg:w-1/2">
+          <div className="w-full">
             {isGenerated && (
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="mb-4 flex justify-between items-center">
@@ -184,15 +184,28 @@ export default function Home() {
                   <button
                     onClick={handleDownload}
                     disabled={!svgContent}
-                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     PNGダウンロード
                   </button>
                 </div>
 
                 {svgContent ? (
-                  <div className="w-full overflow-auto border rounded-lg">
-                    <div dangerouslySetInnerHTML={{ __html: svgContent }} />
+                  <div className="w-full">
+                    <div
+                      className="w-full"
+                      style={{ lineHeight: 0 }}
+                      dangerouslySetInnerHTML={{
+                        __html: svgContent.replace(/<svg([^>]*?)>/i, (match, attributes) => {
+                          // 既存のサイズ属性を削除
+                          const newAttributes = attributes
+                            .replace(/\s*width="[^"]*"/gi, "")
+                            .replace(/\s*height="[^"]*"/gi, "");
+
+                          return `<svg${newAttributes} width="100%" height="auto" style="display: block; max-width: 100%;">`;
+                        }),
+                      }}
+                    />
                   </div>
                 ) : (
                   <div className="flex justify-center items-center h-48">
