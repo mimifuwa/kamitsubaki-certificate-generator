@@ -11,12 +11,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     });
 
     if (!resident) {
-      return NextResponse.json({ error: "住民票が見つかりません" }, { status: 404 });
+      return NextResponse.json({ error: "市民票が見つかりません" }, { status: 404 });
     }
 
     return NextResponse.json(resident);
   } catch (error) {
-    console.error("住民票取得エラー:", error);
-    return NextResponse.json({ error: "住民票の取得に失敗しました" }, { status: 500 });
+    console.error("市民票取得エラー:", error);
+    return NextResponse.json({ error: "市民票の取得に失敗しました" }, { status: 500 });
   }
 }

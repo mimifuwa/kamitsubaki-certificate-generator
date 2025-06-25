@@ -1,4 +1,4 @@
-// 住民票ジェネレータ Prismaスキーマ
+// 市民票ジェネレータ Prismaスキーマ
 // Supabase PostgreSQL接続用
 
 generator client {
@@ -6,12 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
-// 住民票番号管理テーブル
+// 市民票番号管理テーブル
 model ResidentCounter {
   id            Int      @id @default(1)
   currentNumber Int      @default(0) @map("current_number")
@@ -20,7 +20,7 @@ model ResidentCounter {
   @@map("resident_counter")
 }
 
-// 住民票テーブル
+// 市民票テーブル
 model Resident {
   id             String   @id @default(cuid())
   userId         String   @map("user_id")

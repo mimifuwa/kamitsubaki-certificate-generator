@@ -1,25 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ResidentData, STREET_OPTIONS } from "@/types/resident";
 
 interface ResidentFormProps {
   onSubmit: (data: ResidentData) => void;
   loading?: boolean;
+  initialData?: ResidentData;
+  buttonText?: string;
 }
 
-export default function ResidentForm({ onSubmit, loading = false }: ResidentFormProps) {
-  const [formData, setFormData] = useState<ResidentData>({
-    name: "",
-    photo: null,
-    streetNumber: "零番街",
-    addressLine: "",
-    apartmentInfo: "",
-  });
+export default function ResidentForm({
+  onSubmit,
+  loading = false,
+  initialData,
+  buttonText = "市民票を作成",
+}: ResidentFormProps) {
+  const [formData, setFormData] = useState<ResidentData>(
+    initialData || {
+      name: "",
+      photo: null,
+      streetNumber: "零番街",
+      addressLine: "",
+      apartmentInfo: "",
+    }
+  );
+
+  // 初期データが変更された時にフォームを更新（ファイルは保持）
+  useEffect(() => {
+    if (initialData) {
+      setFormData((prev) => ({
+        ...initialData,
+        photo: prev.photo, // 既に選択されているファイルは保持
+      }));
+    }
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // 新規作成時のみ写真を必須とする（初期データがない場合）
+    if (!initialData && !formData.photo) {
+      alert("顔写真を選択してください");
+      return;
+    }
+
     onSubmit(formData);
   };
 
@@ -30,7 +56,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">住民票作成</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">市民票作成</h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* 氏名 */}
@@ -44,7 +70,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
             required
             value={formData.name}
             onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             placeholder="山田 太郎"
           />
         </div>
@@ -60,7 +86,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
             required
             accept="image/jpeg,image/jpg,image/png,image/webp"
             onChange={handlePhotoChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
           />
           {formData.photo && (
             <p className="mt-2 text-sm text-gray-600">選択されたファイル: {formData.photo.name}</p>
@@ -81,7 +107,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
               required
               value={formData.streetNumber}
               onChange={(e) => setFormData((prev) => ({ ...prev, streetNumber: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
             >
               {STREET_OPTIONS.map((street) => (
                 <option key={street} value={street}>
@@ -102,7 +128,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
               required
               value={formData.addressLine}
               onChange={(e) => setFormData((prev) => ({ ...prev, addressLine: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               placeholder="1-2-3"
             />
           </div>
@@ -117,7 +143,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
               id="apartmentInfo"
               value={formData.apartmentInfo}
               onChange={(e) => setFormData((prev) => ({ ...prev, apartmentInfo: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
               placeholder="サンプルマンション 101号室"
             />
           </div>
@@ -130,7 +156,7 @@ export default function ResidentForm({ onSubmit, loading = false }: ResidentForm
             disabled={loading}
             className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "作成中..." : "住民票を作成"}
+            {loading ? "処理中..." : buttonText}
           </button>
         </div>
       </form>

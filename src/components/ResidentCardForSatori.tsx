@@ -136,7 +136,6 @@ export default function ResidentCardForSatori({
           left: "50%",
           transform: "translate(-50%, -50%)",
           flex: 1,
-          zIndex: 10,
         }}
       >
         {photoBase64 ? (
@@ -357,7 +356,6 @@ export default function ResidentCardForSatori({
           position: "absolute",
           left: "64px",
           bottom: "56px",
-          zIndex: 1000,
         }}
       >
         <div
@@ -367,6 +365,7 @@ export default function ResidentCardForSatori({
             fontSize: "60px",
             marginBottom: "16px",
             color: "#74705E",
+            textShadow: "2px 2px 8px #e5e1d6, 0 0 4px #ffffff",
           }}
         >
           <div

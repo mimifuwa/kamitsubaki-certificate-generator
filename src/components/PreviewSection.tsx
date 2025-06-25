@@ -46,7 +46,7 @@ export default function PreviewSection({ residentData, onDownload, onReset }: Pr
   return (
     <div className="max-w-4xl mx-auto">
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold mb-4">住民票プレビュー</h2>
+        <h2 className="text-2xl font-bold mb-4">市民票プレビュー</h2>
         <div className="space-x-4">
           <button
             onClick={onDownload}
@@ -66,7 +66,7 @@ export default function PreviewSection({ residentData, onDownload, onReset }: Pr
       <div className="bg-white p-8 rounded-lg shadow-lg">
         {loading ? (
           <div className="flex justify-center items-center h-96">
-            <div className="text-lg text-gray-600">住民票を生成中...</div>
+            <div className="text-lg text-gray-600">市民票を生成中...</div>
           </div>
         ) : svgContent ? (
           <div className="w-full overflow-auto" style={{ maxHeight: "800px" }}>
@@ -82,7 +82,7 @@ export default function PreviewSection({ residentData, onDownload, onReset }: Pr
           </div>
         ) : (
           <div className="flex justify-center items-center h-96">
-            <div className="text-lg text-red-600">住民票の生成に失敗しました</div>
+            <div className="text-lg text-red-600">市民票の生成に失敗しました</div>
           </div>
         )}
       </div>

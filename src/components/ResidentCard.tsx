@@ -25,7 +25,7 @@ export default function ResidentCard({ resident, preview = false }: ResidentCard
     >
       {/* ヘッダー */}
       <div className="border-b-2 border-gray-800 p-6 text-center">
-        <h1 className="text-3xl font-bold mb-2">住民票</h1>
+        <h1 className="text-3xl font-bold mb-2">市民票</h1>
         <div className="flex justify-between items-center">
           <div className="text-left">
             <p className="text-sm">発行日: {new Date().toLocaleDateString("ja-JP")}</p>

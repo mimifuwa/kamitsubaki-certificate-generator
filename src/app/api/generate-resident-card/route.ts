@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("住民票生成エラー:", error);
-    return NextResponse.json({ error: "住民票の生成に失敗しました" }, { status: 500 });
+    console.error("市民票生成エラー:", error);
+    return NextResponse.json({ error: "市民票の生成に失敗しました" }, { status: 500 });
   }
 }

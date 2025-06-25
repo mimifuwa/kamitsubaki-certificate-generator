@@ -24,50 +24,100 @@ export async function POST(request: NextRequest) {
     const addressLine = formData.get("addressLine") as string;
     const apartmentInfo = formData.get("apartmentInfo") as string;
     const userId = formData.get("userId") as string;
+    const residentId = formData.get("residentId") as string; // 更新時に使用
 
-    if (!name || !photo || !streetNumber || !addressLine || !userId) {
+    // 詳細なバリデーション
+    if (!name || !streetNumber || !addressLine || !userId) {
       return NextResponse.json({ error: "必須フィールドが不足しています" }, { status: 400 });
     }
 
-    // 写真をSupabase Storageにアップロード
-    const fileExt = photo.name.split(".").pop();
-    const fileName = `${userId}/${Date.now()}.${fileExt}`;
+    let photoUrl = null;
 
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from("resident-photos")
-      .upload(fileName, photo, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+    // 写真がアップロードされている場合のみ処理
+    if (photo && photo.name && photo.size > 0) {
+      // 写真をSupabase Storageにアップロード
+      const fileExt = photo.name.split(".").pop();
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
 
-    if (uploadError) {
-      console.error("写真アップロードエラー:", uploadError);
-      return NextResponse.json({ error: "写真のアップロードに失敗しました" }, { status: 500 });
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from("resident-photos")
+        .upload(fileName, photo, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error("写真アップロードエラー:", uploadError);
+        return NextResponse.json({ error: "写真のアップロードに失敗しました" }, { status: 500 });
+      }
+
+      // 写真のパブリックURLを取得
+      const { data: urlData } = supabaseAdmin.storage
+        .from("resident-photos")
+        .getPublicUrl(fileName);
+      photoUrl = urlData.publicUrl;
     }
 
-    // 写真のパブリックURLを取得
-    const { data: urlData } = supabaseAdmin.storage.from("resident-photos").getPublicUrl(fileName);
+    // 更新処理か新規作成処理かを判定
+    if (residentId && residentId !== "null" && residentId !== "undefined") {
+      // 有効なIDでない場合はエラーを返す
+      if (!residentId || residentId === "" || residentId === "null" || residentId === "undefined") {
+        return NextResponse.json({ error: "無効な市民票IDです" }, { status: 400 });
+      }
 
-    // 仮の住民票番号を生成（本来はデータベーストリガーで自動生成）
-    const tempResidentNumber = Math.floor(Math.random() * 100000) + 1;
+      // 更新処理：既存データを更新（新レコードとして作成）
+      const existingResident = await prisma.resident.findUnique({
+        where: { id: residentId },
+      });
 
-    // データベースに住民票データを保存
-    const resident = await prisma.resident.create({
-      data: {
-        userId,
-        name,
-        photoUrl: urlData.publicUrl,
-        streetNumber,
-        addressLine,
-        apartmentInfo: apartmentInfo || null,
-        residentNumber: tempResidentNumber,
-      },
-    });
+      if (!existingResident) {
+        return NextResponse.json({ error: "市民票が見つかりません" }, { status: 404 });
+      }
 
-    return NextResponse.json(resident);
+      // 新しいレコードとして作成（既存の写真URLを使用、新しい写真がある場合は更新）
+      const finalPhotoUrl = photoUrl || existingResident.photoUrl;
+      const tempResidentNumber = Math.floor(Math.random() * 100000) + 1;
+
+      const resident = await prisma.resident.create({
+        data: {
+          userId,
+          name,
+          photoUrl: finalPhotoUrl,
+          streetNumber,
+          addressLine,
+          apartmentInfo: apartmentInfo || null,
+          residentNumber: tempResidentNumber,
+        },
+      });
+
+      return NextResponse.json(resident);
+    } else {
+      // 新規作成処理：写真が必須
+      if (!photoUrl) {
+        return NextResponse.json({ error: "写真のアップロードが必要です" }, { status: 400 });
+      }
+
+      // 仮の市民票番号を生成（本来はデータベーストリガーで自動生成）
+      const tempResidentNumber = Math.floor(Math.random() * 100000) + 1;
+
+      // データベースに市民票データを保存
+      const resident = await prisma.resident.create({
+        data: {
+          userId,
+          name,
+          photoUrl,
+          streetNumber,
+          addressLine,
+          apartmentInfo: apartmentInfo || null,
+          residentNumber: tempResidentNumber,
+        },
+      });
+
+      return NextResponse.json(resident);
+    }
   } catch (error) {
-    console.error("住民票作成エラー:", error);
-    return NextResponse.json({ error: "住民票の作成に失敗しました" }, { status: 500 });
+    console.error("市民票作成エラー:", error);
+    return NextResponse.json({ error: "市民票の作成に失敗しました" }, { status: 500 });
   }
 }
 
@@ -87,7 +137,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(residents);
   } catch (error) {
-    console.error("住民票取得エラー:", error);
-    return NextResponse.json({ error: "住民票の取得に失敗しました" }, { status: 500 });
+    console.error("市民票取得エラー:", error);
+    return NextResponse.json({ error: "市民票の取得に失敗しました" }, { status: 500 });
   }
 }
