@@ -1,7 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import ResidentForm from "@/components/ResidentForm";
 import { Resident, ResidentData } from "@/types/resident";
@@ -11,9 +10,6 @@ export default function Home() {
   const [resident, setResident] = useState<Resident | null>(null);
   const [svgContent, setSvgContent] = useState<string>("");
   const [isGenerated, setIsGenerated] = useState(false);
-
-  const searchParams = useSearchParams();
-  const residentId = searchParams.get("id");
 
   const generateSvg = useCallback(async (residentData: Resident) => {
     try {
@@ -39,31 +35,12 @@ export default function Home() {
     }
   }, []);
 
-  const fetchResident = useCallback(
-    async (id: string) => {
-      try {
-        const response = await fetch(`/api/residents/${id}`);
-        if (!response.ok) {
-          throw new Error("市民票の取得に失敗しました");
-        }
-        const residentData = await response.json();
-        setResident(residentData);
-        await generateSvg(residentData);
-        setIsGenerated(true);
-      } catch (error) {
-        console.error("市民票取得エラー:", error);
-        alert("市民票の取得に失敗しました");
-      }
-    },
-    [generateSvg]
-  );
-
-  // クエリパラメータからデータを読み込み
-  useEffect(() => {
-    if (residentId) {
-      fetchResident(residentId);
-    }
-  }, [residentId, fetchResident]);
+  // クエリパラメータ機能は削除（localStorage管理のため）
+  // useEffect(() => {
+  //   if (residentId) {
+  //     fetchResident(residentId);
+  //   }
+  // }, [residentId, fetchResident]);
 
   const handleFormSubmit = async (data: ResidentData) => {
     setLoading(true);
@@ -71,25 +48,75 @@ export default function Home() {
       // 暫定的なユーザーID（認証実装後に実際のユーザーIDに変更）
       const tempUserId = "temp-user-" + Date.now();
 
-      const formData = new FormData();
-      formData.append("name", data.name);
-      // 写真が選択されている場合のみ追加
+      // 写真をBase64に変換
+      let photoBase64 = "";
       if (data.photo) {
-        formData.append("photo", data.photo);
-      }
-      formData.append("streetNumber", data.streetNumber);
-      formData.append("addressLine", data.addressLine);
-      formData.append("apartmentInfo", data.apartmentInfo || "");
-      formData.append("userId", tempUserId);
+        const compressImage = (file: File): Promise<string> => {
+          return new Promise((resolve, reject) => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
 
-      // 更新の場合は既存の市民票IDを追加
-      if (resident?.id) {
-        formData.append("residentId", resident.id.toString());
+            img.onload = () => {
+              // アスペクト比を保持しながらリサイズ
+              let { width, height } = img;
+              const maxWidth = 800;
+              const maxHeight = 800;
+
+              if (width > maxWidth || height > maxHeight) {
+                const ratio = Math.min(maxWidth / width, maxHeight / height);
+                width = Math.floor(width * ratio);
+                height = Math.floor(height * ratio);
+              }
+
+              canvas.width = width;
+              canvas.height = height;
+
+              // 背景を白で塗りつぶし（JPEGの透明度対応）
+              if (ctx) {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+              }
+
+              // 品質を調整してサイズを最適化
+              let quality = 0.8;
+              let base64 = canvas.toDataURL("image/jpeg", quality);
+
+              // サイズが大きすぎる場合は品質を下げる
+              const maxSizeBytes = 500 * 1024; // 500KB
+              while (base64.length > maxSizeBytes && quality > 0.1) {
+                quality -= 0.1;
+                base64 = canvas.toDataURL("image/jpeg", quality);
+              }
+
+              resolve(base64);
+            };
+
+            img.onerror = () => reject(new Error("画像の読み込みに失敗しました"));
+            img.src = URL.createObjectURL(file);
+          });
+        };
+
+        photoBase64 = await compressImage(data.photo);
       }
+
+      const requestBody = {
+        name: data.name,
+        photoBase64,
+        streetNumber: data.streetNumber,
+        addressLine: data.addressLine,
+        apartmentInfo: data.apartmentInfo || "",
+        userId: tempUserId,
+        residentId: resident?.id || null,
+      };
 
       const response = await fetch("/api/residents", {
         method: "POST",
-        body: formData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -146,7 +173,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="py-8">
       <div className="container mx-auto max-w-7xl px-4">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">神椿市市民票ジェネレータ</h1>

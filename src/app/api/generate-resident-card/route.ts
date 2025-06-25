@@ -58,25 +58,18 @@ export async function POST(request: NextRequest) {
     // Residentオブジェクトの日付を正しくパース
     const residentData: Resident = {
       ...resident,
-      createdAt: new Date(resident.createdAt),
-      updatedAt: new Date(resident.updatedAt),
+      createdAt:
+        typeof resident.createdAt === "string"
+          ? resident.createdAt
+          : new Date(resident.createdAt).toISOString(),
+      updatedAt:
+        typeof resident.updatedAt === "string"
+          ? resident.updatedAt
+          : new Date(resident.updatedAt).toISOString(),
     };
 
-    // 写真をBase64で取得
-    let photoBase64: string | undefined;
-    try {
-      // ローカルファイルシステムから直接読み込み
-      const photoPath = path.join(process.cwd(), "public", resident.photoUrl);
-      const photoBuffer = await readFile(photoPath);
-      const base64 = photoBuffer.toString("base64");
-      // ファイル拡張子からMIMEタイプを推定
-      const ext = path.extname(resident.photoUrl).toLowerCase();
-      const mimeType = ext === ".png" ? "image/png" : "image/jpeg";
-      photoBase64 = `data:${mimeType};base64,${base64}`;
-    } catch (error) {
-      console.error("写真取得エラー:", error);
-      // 写真取得に失敗してもSVG生成は続行
-    }
+    // 写真はすでにBase64形式で提供される
+    const photoBase64 = resident.photoBase64;
 
     // ロゴ画像をBase64で取得
     let logoBase64: string | undefined;

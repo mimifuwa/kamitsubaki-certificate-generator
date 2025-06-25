@@ -11,12 +11,12 @@ export interface Resident {
   userId: string;
   residentNumber: number;
   name: string;
-  photoUrl: string;
+  photoBase64: string;
   streetNumber: string;
   addressLine: string;
   apartmentInfo?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const STREET_OPTIONS = [
