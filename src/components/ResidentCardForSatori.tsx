@@ -225,6 +225,30 @@ export default function ResidentCardForSatori({
         />
       </div>
 
+      {/* 市章 */}
+      <div
+        style={{
+          ...flexStyle,
+          position: "absolute",
+          width: "24px",
+          height: "80px",
+          bottom: "40px",
+          right: "56px",
+        }}
+      >
+        <img
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: "0",
+            left: "0",
+          }}
+          src={`${process.env.BASE_URL}/11.png`}
+          alt="市章"
+        />
+      </div>
+
       {/* バーコード */}
       <div
         style={{

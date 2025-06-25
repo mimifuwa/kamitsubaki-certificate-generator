@@ -191,21 +191,124 @@ export default function Home() {
                 </div>
 
                 {svgContent ? (
-                  <div className="w-full">
+                  <div
+                    className="w-full"
+                    style={{
+                      perspective: "1000px",
+                    }}
+                  >
                     <div
-                      className="w-full"
-                      style={{ lineHeight: 0 }}
-                      dangerouslySetInnerHTML={{
-                        __html: svgContent.replace(/<svg([^>]*?)>/i, (match, attributes) => {
-                          // 既存のサイズ属性を削除
-                          const newAttributes = attributes
-                            .replace(/\s*width="[^"]*"/gi, "")
-                            .replace(/\s*height="[^"]*"/gi, "");
-
-                          return `<svg${newAttributes} width="100%" height="auto" style="display: block; max-width: 100%;">`;
-                        }),
+                      className="w-full cursor-pointer relative"
+                      style={{
+                        lineHeight: 0,
+                        transformStyle: "preserve-3d",
+                        transition: "all 0.3s ease-out",
+                        transform: "rotateX(0deg) rotateY(0deg) scale(1)",
+                        borderRadius: "100vw",
+                        overflow: "visible",
+                        boxShadow:
+                          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
                       }}
-                    />
+                      onMouseMove={(e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+
+                        const rotateY = ((x - centerX) / centerX) * 5; // -5から5度
+                        const rotateX = ((centerY - y) / centerY) * 5; // -5から5度
+
+                        // 3D変形を適用
+                        e.currentTarget.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                        e.currentTarget.style.boxShadow = "0 25px 50px -12px rgba(0, 0, 0, 0.25)";
+
+                        // 光エフェクトの位置を更新
+                        const lightOverlay = e.currentTarget.querySelector(
+                          ".light-overlay"
+                        ) as HTMLElement;
+                        if (lightOverlay) {
+                          const xPercent = (x / rect.width) * 100;
+                          const yPercent = (y / rect.height) * 100;
+                          lightOverlay.style.background = `
+                            radial-gradient(
+                              600px circle at ${xPercent}% ${yPercent}%,
+                              rgba(255, 255, 255, 0.4) 0%,
+                              rgba(255, 255, 255, 0.2) 20%,
+                              rgba(255, 255, 255, 0.1) 40%,
+                              transparent 70%
+                            )
+                          `;
+                          lightOverlay.style.opacity = "1";
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "rotateX(0deg) rotateY(0deg) scale(1)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)";
+
+                        // 光エフェクトを非表示
+                        const lightOverlay = e.currentTarget.querySelector(
+                          ".light-overlay"
+                        ) as HTMLElement;
+                        if (lightOverlay) {
+                          lightOverlay.style.opacity = "0";
+                        }
+                      }}
+                    >
+                      {/* SVGコンテンツ */}
+                      <div
+                        dangerouslySetInnerHTML={{
+                          __html: svgContent.replace(/<svg([^>]*?)>/i, (_match, attributes) => {
+                            // 既存のサイズ属性を削除
+                            const newAttributes = attributes
+                              .replace(/\s*width="[^"]*"/gi, "")
+                              .replace(/\s*height="[^"]*"/gi, "");
+
+                            return `<svg${newAttributes} width="100%" height="auto" style="display: block; max-width: 100%;">`;
+                          }),
+                        }}
+                      />
+
+                      {/* 光エフェクトオーバーレイ */}
+                      <div
+                        className="light-overlay"
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          pointerEvents: "none",
+                          opacity: 0,
+                          transition: "opacity 0.3s ease-out",
+                          mixBlendMode: "overlay",
+                          borderRadius: "8px",
+                        }}
+                      />
+
+                      {/* ホログラムエフェクト */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          pointerEvents: "none",
+                          background: `
+                            linear-gradient(
+                              45deg,
+                              transparent 30%,
+                              rgba(255, 255, 255, 0.1) 50%,
+                              transparent 70%
+                            )
+                          `,
+                          opacity: 0.3,
+                          borderRadius: "8px",
+                        }}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="flex justify-center items-center h-48">
